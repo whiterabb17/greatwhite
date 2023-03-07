@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/css/base.css"/>
+    <link rel="stylesheet" href="static/lib/astiloader/astiloader.css">
+    <link rel="stylesheet" href="static/lib/astimodaler/astimodaler.css">
+    <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
+    <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="rightpanel" id="left" style="height:450px;">
+        <p align="center"><img align="center" src="static/imgs/Necromancer.png" style="width: 125px;"></p>
+        <div class="title"><span id="Stat">Listeners</span></div>
+        <div class="panel" style="border-color: #816262">
+            <Label for="name">Listener Name: 
+            <input name="name" value="" id="name" style="right:50%;width:35%"/>
+        </div>
+        <div class="panel" style="border-color: #816262">
+            <Label for="port">Listener Port: 
+            <input name="port" value="" id="port" style="right:50%;width:35%"/>
+        </div>
+            <button style="left: 15%;top:13px;height:40px" class="submit" name="submit" id="submit" onclick="submit()">Start</button>
+            <br>
+            <button style="left: 15%;top:5px; height:35px" class="submit" name="submit" id="submit" onclick="listener.close()">Close</button>
+        </div>
+    </div>
+    <div class="panel" style="display: flex; position: relative;top:13px;width:420px;border-color: #816262;">
+        <table class="porttable" id="porttableMain">
+            <thead  style="width: 180px;">
+            <tr><th style="width: 90px;">Listener Name</th><th style="width: 90px;">Listener Port</th></tr>
+            </thead>
+            <tbody id="porttable">
+            </tbody>
+        </table>
+    </div>
+    <div style="vertical-align: bottom;right:80%; padding:25px"> 
+        
+    </div>
+    <script src="static/js/listener.js"></script>
+    <script src="static/lib/astiloader/astiloader.js"></script>
+    <script src="static/lib/astimodaler/astimodaler.js"></script>
+    <script src="static/lib/astinotifier/astinotifier.js"></script>
+    <script src="static/lib/chart/chart.min.js"></script>
+    <script type="text/javascript">
+        listener.init();
+        function submit() {
+            listener.startListener()
+            //var port = document.getElementById("port").value
+            //listener.addToTable(port);
+        }
+    </script>
+</body>
+</html>

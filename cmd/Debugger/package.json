@@ -1,0 +1,20 @@
+{
+  "name": "debugger",
+  "version": "1.0.0",
+  "description": "Necromancy Debugger",
+  "main": "Debugger.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io-client": "^2.5.0",    
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "formidable": "^2.0.1",
+    "http": "^0.0.1-security",
+    "socket.io": "^2.5.0",
+    "https": "^1.0.0"
+  }
+}

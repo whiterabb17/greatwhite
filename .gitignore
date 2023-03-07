@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+.idea/
+bind*
+output
+windows.syso
+.backup/backupBuilds.7z
+.backup/_backup_output.7z
+FullBuild.2022-12-25.7z
+.backup/Client_Backup.7z
+cmd/Agent/main.go.disabled
+modules/commands/gryphon.go

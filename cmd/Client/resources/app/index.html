@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/css/base.css"/>
+    <link rel="stylesheet" href="static/css/style.css"/>
+    <link rel="stylesheet" href="static/css/custom.css"/>
+    <link rel="stylesheet" href="static/lib/astiloader/astiloader.css">
+    <link rel="stylesheet" href="static/lib/astimodaler/astimodaler.css">
+    <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
+    <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="mainpanel">
+        <!-- Tabs -->
+        <div id="consoleHolder">
+            <div class="tabcontent" id="listTab" style="display:block;">
+                <div class="clientList" id="clientDiv">
+                    <table class="cTable">
+                        <thead>
+                            <tr>
+                            <th class="th" style="width:80px">Tag</th>
+                            <th class="th" style="width:65px">Version</th>
+                            <th class="th" style="width:75px">IPAddr</th>
+                            <th class="th" style="width:85px">Hostname</th>
+                            <th class="th" style="width:85px">Username</th>
+                            <th class="th" style="width:105px">Op.System</th>
+                            <th class="th" style="width:60px">CPU</th>
+                            <th class="th" style="width:60px">GPU</th>
+                            <th class="th" style="width:80px">Memory</th>
+                            <th class="th" style="width:80px">AntiVirus</th>
+                            <th class="th" style="width:80px">BuildLang</th>
+                            <th class="th" style="width:50px">Recovered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientBody" class="clientTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>  
+            <div class="tabcontent" id="logTab" style="display:none;">
+                <div id="appLogs"></div>
+            </div>
+        </div>
+        <!-- End Tabs -->
+    </div>
+    <div class="panel">
+       <!-- <div class="cmdSwitch">
+            <select id="cList" onchange="selectClientTag()" onclick="surity()">
+                <option class="ListedClients"> ---Clients--- </option> 
+            </select>         < !--  -- >
+            <input name="targetBox" value="" placeholder="ClientID" id="targetBox" />
+            <input style="display:none;" name="selectedClient" value="" id="selected_client" />            
+            <select id="cmdList" onchange="selectBuildType()">
+                <option> ---Commands--- </option>
+                <option>ping</option>
+                <option>info</option>
+                <option>inst</option>
+                <option>root</option>
+                <option>shell</option>
+                <option>upload</option>
+                <option>download</option>
+                <option>gryphon</option>
+                <option>stop</option>
+                <option>remove</option>
+            </select>         
+            <span><input style="display:none;" name="selectedCommand" value="" id="selected_command" />            
+            <input name="commandArgs" value="" id="command_args" style="width:50%"/>
+            <button class="send" name="send" id="send" onclick="submit()">SEND</button></span>
+        </div> -->
+    </div>
+    <div class="statuspanel"><span style="color:white">Status:</span><span class="stat" id="serverstatus"></span></div>
+    <script src="static/js/index.js"></script>
+    <script src="static/lib/astiloader/astiloader.js"></script>
+    <script src="static/lib/astimodaler/astimodaler.js"></script>
+    <script src="static/lib/astinotifier/astinotifier.js"></script>
+    <script src="static/lib/chart/chart.min.js"></script>
+    <script type="text/javascript">
+        index.init();
+        function surity(){
+            index.ensureSelection();
+        }
+        function getClients(){
+            clientList.forEach(id, name => {
+                index.addToClientSelect(name);
+            });
+        }
+        function showPass(socketId){
+            index.sendCommand("password", socketId);
+        }
+        function submit(){
+            let client = document.getElementById("targetBox").value
+            let argsCmd = document.getElementById("command_args").value
+          //  let command = document.getElementById("selected_command").value
+            index.sendCommand(argsCmd, client)
+        }
+        function selectClientTag() {  
+            var mylist = document.getElementById("cList");  
+            _typeHolder = mylist.options[mylist.selectedIndex].text;
+            document.getElementById("selected_client").value = _typeHolder;
+        } 
+        function selectBuildType() {  
+            var mylist = document.getElementById("cmdList");  
+            _typeHolder = mylist.options[mylist.selectedIndex].text;
+            document.getElementById("selected_command").value = _typeHolder;
+        } 
+    </script>
+</body>
+</html>

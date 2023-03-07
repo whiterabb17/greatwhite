@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="static/css/base.css"/>
+        <link rel="stylesheet" href="static/lib/astiloader/astiloader.css">
+        <link rel="stylesheet" href="static/lib/astimodaler/astimodaler.css">
+        <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
+        <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+    </head>
+    <body>
+        <div class="right">
+            <p align="center"><img align="center" src="static/imgs/Necromancer.png" style="width: 125px;"></p>
+            <div class="title"><span style="align-self: center;" id="Stat">NECROMANCER</span></div>
+            <div class="panel" style="margin-left: 15px;margin-right:15px;">
+                <Label for="callbackAddr" style="right: 0.1%;position: relative;">Server Addr:
+                <input name="callbackAddr" value="127.0.0.1" id="callback_addr" />
+            </div>
+            <div class="panel" style="margin-left: 15px;margin-right:15px;">
+                <Label for="callbackPort">Server Port: 
+                <input name="callbackPort" value="55556" id="callback_port" />
+            </div>
+            <div class="panel" style="margin-left: 15px;margin-right:15px;">
+                <Label for="userName">Username: 
+                <input name="userName" value="admin" id="userName" />
+            </div>
+            <div class="panel" style="margin-left: 15px;margin-right:15px;">
+                <Label for="passWord">Password: 
+                <input name="passWord" value="admin" id="passWord" />
+            </div>
+            <div class="rightpanel" style="padding: 5px;">
+                <button class="enter" name="enter" id="enter" onclick="submit()">Login</button>
+            </div>  
+        </div>
+        <script src="static/js/login.js"></script>
+        <script src="static/lib/astiloader/astiloader.js"></script>
+        <script src="static/lib/astimodaler/astimodaler.js"></script>
+        <script src="static/lib/astinotifier/astinotifier.js"></script>
+        <script src="static/lib/chart/chart.min.js"></script>
+        <script type="text/javascript">
+            login.init();
+            var selectedLang;
+            function submit(){
+                let addr = document.getElementById("callback_addr").value
+                let port = document.getElementById("callback_port").value
+                let usr = document.getElementById("userName").value
+                let pwd = document.getElementById("passWord").value
+                login.TryLogin(addr, port, usr, pwd);
+            }
+        </script>
+    </body>
+</html>
